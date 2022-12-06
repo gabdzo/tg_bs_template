@@ -1,0 +1,186 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+# some metadata about the template itself
+metadata:
+  name: v1beta3-tg-template
+  title: Terragrunt template
+  description: Terragrunt template project
+spec:
+  owner: user/gabdzo
+  type: service
+  path: "."
+  # these are the steps which are rendered in the frontend with the form input
+  parameters:
+    - title: Fill in some steps
+      required:
+        - name
+      properties:
+        name:
+          title: Name
+          type: string
+          description: Unique name of the component
+          ui:autofocus: true
+          ui:options:
+            rows: 5
+        aws_role:
+          title: AWS Role
+          type: string
+          description: Unique name of the component
+          ui:autofocus: true
+          ui:options:
+            rows: 5
+        project:
+          title: Project
+          type: string
+          description: Name of the project
+          ui:autofocus: true
+          ui:options:
+            rows: 5
+        region:
+          title: Region
+          type: string
+          description: Unique name of the component
+          ui:autofocus: true
+          ui:options:
+            rows: 5
+        stack_name:
+          title: Stack name
+          type: string
+          description: Format 2022-1
+          ui:autofocus: true
+          ui:options:
+            rows: 5
+        dev:
+          title: dev
+          type: boolean
+          description: Do we need ec2?
+          default: true
+        stage:
+          title: stage
+          type: boolean
+          description: Do we need ec2?
+          default: true
+        prod:
+          title: prod
+          type: boolean
+          description: Do we need ec2?
+          default: true
+        ec2:
+          title: ec2
+          type: boolean
+          description: Do we need ec2?
+          default: true
+        ec2_source:
+          title: ec2 source
+          type: string
+          description: link to ec2 module
+          default: git@github.com:terraform-aws-modules/terraform-aws-ec2-instance.git
+        ec2_attributes:
+          title: Text area input
+          type: string
+          description: Insert your multi line string
+          ui:widget: textarea
+          ui:options:
+            rows: 10
+        rds:
+          title: rds
+          type: boolean
+          description: Do we need rds?
+          default: true
+        rds_source:
+          title: rds source
+          type: string
+          description: link to rds module
+          default: git@github.com:terraform-aws-modules/terraform-aws-rds.git
+        rds_attributes:
+          title: Text area input
+          type: string
+          description: Insert your multi line string
+          ui:widget: textarea
+          ui:options:
+            rows: 10
+        s3:
+          title: rds
+          type: boolean
+          description: Do we need rds?
+          default: true
+        s3_source:
+          title: rds source
+          type: string
+          description: link to rds module
+          default: git@github.com:terraform-aws-modules/terraform-aws-rds.git
+        s3_attributes:
+          title: Text area input
+          type: string
+          description: Insert your multi line string
+          ui:widget: textarea
+          ui:options:
+            rows: 10
+
+    - title: Choose a location
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+  # here's the steps that are executed in series in the scaffolder backend
+  steps:
+    - id: fetch-base
+      name: Fetch Base
+      action: fetch:template
+      input:
+        url: ./content
+        values:
+          name: ${{ parameters.name }}
+          project: ${{ parameters.project }}
+          region: ${{ parameters.region }}
+          stack_name: ${{ parameters.stack_name }}
+          ec2: ${{ parameters.ec2 }}
+          ec2_source: ${{ parameters.ec2_source }}
+          ec2_attributes: ${{ parameters.ec2_attributes }}
+          rds: ${{ parameters.rds }}
+          rds_source: ${{ parameters.rds_source }}
+          rds_attributes: ${{ parameters.rds_attributes }}
+          s3: ${{ parameters.s3 }}
+          s3_source: ${{ parameters.s3_source }}
+          s3_attributes: ${{ parameters.s3_attributes }}
+          dev: ${{ parameters.dev }}
+          stage: ${{ parameters.stage }}
+          prod: ${{ parameters.prod }}
+          aws_role: ${{ parameters.aws_role }}
+
+#    - id: fetch-template
+#      name: Fetch Template
+#      action: fetch:plain
+#      input:
+#        url: https://github.com/gabdzo/backstage/blob/master/template.yml
+
+    - id: publish
+      name: Publish
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        description: This is ${{ parameters.name }}
+        repoUrl: ${{ parameters.repoUrl }}
+
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  # Outputs are displayed to the user after a successful execution of the template.
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
