@@ -1,15 +1,12 @@
 locals {
-  account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
-  region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
-  project_vars = read_terragrunt_config(find_in_parent_folders("project.hcl"))
   environment_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
   deployment_vars = read_terragrunt_config(find_in_parent_folders("deployment.hcl"))
 
-  account_name = local.account_vars.locals.account_name
-  aws_account_id = local.account_vars.locals.aws_account_id
-  aws_region = local.region_vars.locals.aws_region
+  account_name = local.environment_vars.locals.account_name
+  aws_account_id = local.environment_vars.locals.aws_account_id
+  aws_region = local.environment_vars.locals.aws_region
   env = local.environment_vars.locals.env
-  project = local.project_vars.locals.project
+  project = local.environment_vars.locals.project
   aws_role = local.environment_vars.locals.aws_role
   deployment = local.deployment_vars.locals.deployment
 
@@ -44,8 +41,5 @@ remote_state {
 }
 
 inputs = merge(
-  local.account_vars.locals,
-  local.region_vars.locals,
-  local.project_vars.locals,
   local.environment_vars.locals,
 )

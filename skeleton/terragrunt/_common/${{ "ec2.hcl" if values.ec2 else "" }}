@@ -1,0 +1,16 @@
+locals {
+    base_source_url = ${{ values.ec2_source | dump }}
+}
+
+terraform {
+    source = local.base_source_url
+}
+
+inputs = {
+    ami                    = "ami-0b0dcb5067f052a63"
+    instance_type          = "t2.micro"
+
+    monitoring             = true
+    vpc_security_group_ids = ["sg-021f57eb4beaed920"]
+    subnet_id              = "subnet-007c02fc0ce24c2e5"
+}
